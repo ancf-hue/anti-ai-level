@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0a0a0a">
+    <title>Анти ИИ Уровень</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="shortcut icon" href="favicon.ico">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .app {
+            width: 100%;
+            max-width: 400px;
+            height: 700px;
+            background: linear-gradient(180deg, #0f1a24 0%, #0a0f14 100%);
+            border-radius: 44px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ЭКРАН ЗАГРУЗКИ */
+        .loading-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #0f1a24; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 200;
+            transition: opacity 0.5s ease;
+        }
+        .loading-screen.hidden { opacity: 0; pointer-events: none; }
+        .loading-video { width: 100%; height: 100%; object-fit: cover; }
+        .loading-image {
+            width: 100%; height: 100%; object-fit: cover;
+            position: absolute; top: 0; left: 0;
+        }
+        .sound-toggle {
+            position: absolute; top: 20px; left: 20px;
+            background: rgba(0,0,0,0.7); border: 2px solid white;
+            border-radius: 50%; width: 56px; height: 56px;
+            font-size: 28px; cursor: pointer; z-index: 201;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.3s ease; color: white;
+        }
+        .sound-toggle:active { transform: scale(0.9); }
+
+        .app-content {
+            flex: 1; overflow-y: auto; padding: 20px 16px;
+            display: flex; flex-direction: column;
+        }
+
+        /* 🔊 Кнопка озвучивания (правый нижний угол) */
+        .voice-btn {
+            position: absolute; bottom: 20px; right: 20px;
+            width: 52px; height: 52px; border-radius: 50%;
+            background: linear-gradient(145deg, #6ba5d9, #4a7a9e);
+            border: none; font-size: 24px; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 100; color: white;
+        }
+        .voice-btn:active { transform: scale(0.95); }
+
+        .page-logo {
+            width: 48px; height: 48px; margin: 12px auto 8px;
+            display: block; object-fit: contain;
+            filter: drop-shadow(0 0 8px #6ba5d9);
+        }
+
+        .back-btn {
+            position: absolute; top: 14px; left: 14px;
+            width: 44px; height: 44px; border-radius: 50%;
+            background: rgba(0,0,0,0.6); border: 1px solid white;
+            color: white; font-size: 24px; font-weight: bold;
+            cursor: pointer; z-index: 100;
+            display: flex; align-items: center; justify-content: center;
+            transition: 0.15s;
+        }
+        .back-btn:active { transform: scale(0.94); }
+
+        .page {
+            display: none; flex-direction: column; align-items: center;
+            text-align: center; flex: 1; width: 100%; position: relative;
+        }
+        .page.active { display: flex; }
+
+        /* 🔘 КНОПКИ 3D ПОД СТЕКЛОМ — ДОБАВЛЕНО */
+        .btn {
+            padding: 14px 28px; font-size: 16px; font-weight: 700;
+            background: linear-gradient(145deg, #1e2a3a, #141e2a);
+            color: white; border: 1px solid rgba(107,165,217,0.4);
+            border-radius: 16px; cursor: pointer; margin: 8px 4px;
+            transition: transform 0.12s, box-shadow 0.12s;
+            min-width: 145px; position: relative; overflow: hidden;
+            box-shadow: 
+                0 8px 32px rgba(0,0,0,0.4),
+                inset 0 1px 0 rgba(255,255,255,0.1),
+                inset 0 -2px 4px rgba(0,0,0,0.2);
+            text-shadow: 0 1px 0 rgba(0,0,0,0.3);
+        }
+        /* Блик стекла сверху */
+        .btn::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 45%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.15), transparent);
+            border-radius: 16px 16px 50% 50%; pointer-events: none;
+        }
+        /* Свечение при наведении */
+        .btn::after {
+            content: ''; position: absolute; top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 60%);
+            opacity: 0; transition: opacity 0.2s; pointer-events: none;
+            transform: scale(0.8);
+        }
+        .btn:hover::after { opacity: 1; transform: scale(1); }
+        .btn:active {
+            transform: scale(0.96) translateY(2px);
+            box-shadow: 
+                0 4px 20px rgba(0,0,0,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.1),
+                inset 0 -1px 2px rgba(0,0,0,0.3);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(145deg, #6ba5d9, #4a7a9e);
+            border-color: rgba(255,255,255,0.3); color: #000;
+            box-shadow: 
+                0 8px 32px rgba(107,165,217,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.3),
+                inset 0 -2px 4px rgba(0,0,0,0.15);
+        }
+        .btn-primary::before { background: linear-gradient(to bottom, rgba(255,255,255,0.3), transparent); }
+        
+        .btn-warn {
+            background: linear-gradient(145deg, #c97b6b, #a85a4a);
+            border-color: rgba(255,255,255,0.3); color: white;
+            box-shadow: 
+                0 8px 32px rgba(201,123,107,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.25),
+                inset 0 -2px 4px rgba(0,0,0,0.2);
+        }
+        .btn-warn::before { background: linear-gradient(to bottom, rgba(255,255,255,0.25), transparent); }
+        
+        .btn-large { font-size: 19px; padding: 18px 36px; min-width: 190px; border-radius: 20px; }
+        .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none !important; }
+        .btn:disabled::after { display: none; }
+
+        #countdown {
+            font-size: 72px; font-weight: 900; color: #6ba5d9;
+            margin: 10px 0 4px; text-shadow: 0 0 28px rgba(107,165,217,0.4);
+        }
+        #angle {
+            font-size: 64px; font-weight: 900; margin: 6px 0 2px; color: #6ba5d9;
+        }
+        #diff { font-size: 17px; color: #d9a86b; margin: 4px 0 14px; }
+        #status, #status3 { 
+            font-size: 14px; color: #e0e0e0; background: rgba(0,0,0,0.5);
+            padding: 8px 12px; border-radius: 12px; margin: 8px 0; max-width: 320px;
+        }
+
+        #indicator {
+            width: 76px; height: 76px; border-radius: 50%;
+            background: rgba(25,35,45,0.9); margin: 18px 0 10px;
+            border: 3px solid #6ba5d9; display: flex;
+            align-items: center; justify-content: center; font-size: 32px;
+            transition: all 0.25s ease;
+        }
+        #indicator.on {
+            background: linear-gradient(145deg, #6ba5d9, #4a7a9e);
+            box-shadow: 0 0 36px rgba(107,165,217,0.4);
+            transform: scale(1.09);
+        }
+
+        .bubble-container {
+            width: 210px; height: 64px; background: rgba(25,35,45,0.9);
+            border-radius: 32px; margin: 14px 0 8px; position: relative;
+            border: 2px solid #6ba5d9; overflow: hidden;
+        }
+        .bubble-track {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 190px; height: 4px; background: #4a5568; border-radius: 2px;
+        }
+        .bubble {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px; height: 40px; border-radius: 50%;
+            background: linear-gradient(145deg, #6ba5d9, #4a7a9e);
+            border: 3px solid white; transition: transform 0.14s ease-out;
+        }
+
+        .camera-wrap {
+            position: relative; width: 100%; max-width: 350px;
+            margin: 14px auto 8px; border-radius: 18px; overflow: hidden;
+            border: 2px solid #6ba5d9; background: #000; aspect-ratio: 4/3;
+        }
+        #video {
+            width: 100%; height: 100%; display: block;
+            object-fit: cover; transform: scaleX(-1);
+        }
+        #grid-canvas {
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%; pointer-events: none;
+        }
+
+        .manual-input {
+            display: flex; align-items: center; gap: 12px;
+            margin: 14px 0 10px; flex-wrap: wrap; justify-content: center;
+        }
+        .manual-input input {
+            padding: 11px 16px; font-size: 17px; width: 105px;
+            text-align: center; background: #1a1a2e; color: white;
+            border: 2px solid #6ba5d9; border-radius: 12px;
+        }
+        .manual-input input:focus { outline: none; border-color: #6ba5d9; }
+        .manual-input label { 
+            font-size: 14px; color: white; background: #6ba5d9;
+            padding: 8px 12px; border-radius: 12px;
+        }
+
+        .lang-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            gap: 7px; margin-top: 18px; max-width: 310px;
+        }
+        .lang-btn {
+            padding: 9px 4px; background: #1a1a2e;
+            border: 2px solid #6ba5d9; color: white;
+            border-radius: 10px; cursor: pointer; font-size: 11px;
+            font-weight: 700; transition: 0.15s;
+        }
+        .lang-btn.active {
+            background: #6ba5d9; color: #000; border-color: white;
+        }
+        .lang-btn:active { transform: scale(0.96); }
+
+        .hint {
+            background: rgba(0,0,0,0.7); border-radius: 16px;
+            padding: 15px; margin: 8px 0 18px; max-width: 330px;
+            font-size: 13px; line-height: 1.55; text-align: left;
+            border: 1px solid #6ba5d9; color: white;
+        }
+        .hint b { color: #6ba5d9; font-weight: 700; }
+
+        .mode-badge {
+            display: inline-block; margin: 4px auto 12px;
+            padding: 5px 15px; border-radius: 22px; font-size: 11px;
+            font-weight: 800; background: rgba(0,0,0,0.8);
+            border: 1px solid #6ba5d9; color: white; text-align: center;
+        }
+        .mode-badge.sensor { color: #6b9c7a; border-color: #6b9c7a; }
+        .mode-badge.camera { color: #6ba5d9; border-color: #6ba5d9; }
+        .mode-badge.manual { color: #c97b6b; border-color: #c97b6b; }
+
+        .controls { display: flex; gap: 9px; flex-wrap: wrap; justify-content: center; margin-top: 14px; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+<div class="app">
+    <!-- ЭКРАН ЗАГРУЗКИ: фото 2 сек → видео 3 сек -->
+    <div class="loading-screen" id="loadingScreen">
+        <img src="frame.jpg" class="loading-image" id="loadingImage" alt="intro">
+        <video src="cube.mp4" playsinline preload="auto" class="loading-video" id="loadingVideo" loop muted style="display: none;"></video>
+        <button class="sound-toggle" id="soundBtn">🔇</button>
+    </div>
+
+    <div class="app-content" id="appContent" style="display: none;">
+        <!-- Страница 1: Старт -->
+        <div id="p1" class="page active">
+            <img src="favicon.ico" class="page-logo" alt="logo" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ccircle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%236ba5d9%22/%3E%3Ctext x=%2250%22 y=%2265%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2250%22 font-weight=%22bold%22%3E📐%3C/text%3E%3C/svg%3E';">
+            <button class="btn btn-primary btn-large" id="btn-howto" onclick="go('p2')">Как пользоваться</button>
+            <div style="font-size:11px;color:#9ab3c5;margin-top:6px">v1.2 • Офлайн • Бесплатно</div>
+            <div class="lang-grid" id="langs"></div>
+        </div>
+
+        <!-- Страница 2: Инструкция + Запуск -->
+        <div id="p2" class="page">
+            <button class="back-btn" onclick="go('p1')">←</button>
+            <img src="favicon.ico" class="page-logo" alt="logo" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ccircle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%236ba5d9%22/%3E%3Ctext x=%2250%22 y=%2265%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2250%22 font-weight=%22bold%22%3E📐%3C/text%3E%3C/svg%3E';">
+            <div class="mode-badge" id="mode-badge-2">⏳ ОЖИДАНИЕ</div>
+            <div class="hint" id="hint-2"></div>
+            <button class="btn btn-primary btn-large" id="btn-start" onclick="startWorkflow()">🎯 УРОВЕНЬ</button>
+            <div id="countdown"></div>
+            <div id="status">Готово к запуску</div>
+            <div style="margin-top:auto;font-size:11px;color:#9ab3c5;padding:12px 0">💡 Для точности: положите устройство на ровную поверхность</div>
+        </div>
+
+        <!-- Страница 3: Работа -->
+        <div id="p3" class="page">
+            <button class="back-btn" onclick="go('p2')">←</button>
+            <img src="favicon.ico" class="page-logo" alt="logo" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ccircle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%236ba5d9%22/%3E%3Ctext x=%2250%22 y=%2265%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2250%22 font-weight=%22bold%22%3E📐%3C/text%3E%3C/svg%3E';">
+            <div class="mode-badge" id="mode-badge-3">🔧 РАБОТА</div>
+            
+            <div class="camera-wrap" id="camera-wrap" style="display:none">
+                <video id="video" autoplay playsinline muted></video>
+                <canvas id="grid-canvas"></canvas>
+            </div>
+            <div id="bubble-view" style="display:none">
+                <div class="bubble-container">
+                    <div class="bubble-track"></div>
+                    <div class="bubble" id="bubble"></div>
+                </div>
+                <div style="font-size:12px;color:#9ab3c5;margin-top:8px">← наклоняйте устройство →</div>
+            </div>
+            <div class="manual-input" id="manual-input" style="display:none">
+                <label id="manual-label">Угол (°)</label>
+                <input type="number" id="manual-angle" step="0.1" value="0">
+            </div>
+            
+            <div id="angle">0.0°</div>
+            <div id="diff"></div>
+            <div id="indicator">⚖️</div>
+            <div id="status3">Готово</div>
+            <div class="controls">
+                <button class="btn" id="btn-save" onclick="saveRef()">📝 ЗАПИСАТЬ</button>
+                <button class="btn btn-primary" id="btn-check" onclick="checkMatch()" style="display:none">🔍 ПРОВЕРИТЬ</button>
+                <button class="btn btn-warn" onclick="resetAll()">🗑️ СБРОС</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Кнопка звука для озвучивания -->
+    <button class="voice-btn" id="voiceBtn" onclick="toggleSpeech()">🔊</button>
+</div>
+
+<script>
+// ========== ЗАСТАВКА ==========
+const loadingScreen = document.getElementById('loadingScreen');
+const loadingImage = document.getElementById('loadingImage');
+const loadingVideo = document.getElementById('loadingVideo');
+const soundBtn = document.getElementById('soundBtn');
+const appContent = document.getElementById('appContent');
+let videoSoundOn = false;
+let introSequenceFinished = false;
+
+function enableVideoSound() {
+    if (loadingVideo) {
+        loadingVideo.muted = false;
+        loadingVideo.volume = 0.5;
+        videoSoundOn = true;
+        soundBtn.textContent = '🔊';
+        loadingVideo.play().catch(e => console.log('Play error:', e));
+    }
+}
+function disableVideoSound() {
+    if (loadingVideo) {
+        loadingVideo.muted = true;
+        videoSoundOn = false;
+        soundBtn.textContent = '🔇';
+    }
+}
+soundBtn.addEventListener('click', (e) => { 
+    e.stopPropagation(); 
+    if (videoSoundOn) disableVideoSound(); else enableVideoSound();
+});
+
+loadingImage.style.display = 'block';
+loadingVideo.style.display = 'none';
+loadingVideo.muted = true;
+loadingVideo.loop = true;
+
+setTimeout(() => {
+    loadingImage.style.display = 'none';
+    loadingVideo.style.display = 'block';
+    loadingVideo.play().catch(e => console.log('Video autoplay blocked:', e));
+    setTimeout(() => {
+        if (!introSequenceFinished) {
+            introSequenceFinished = true;
+            loadingScreen.classList.add('hidden');
+            setTimeout(() => {
+                loadingScreen.style.display = 'none';
+                appContent.style.display = 'block';
+                if (loadingVideo) { loadingVideo.pause(); loadingVideo.currentTime = 0; }
+                initAppAfterSplash();
+            }, 500);
+        }
+    }, 3000);
+}, 2000);
+
+function initAppAfterSplash() {
+    if (typeof window.originalInit === 'undefined') {
+        initLanguages();
+        detectMode().then(() => { updateUI(); document.title = t('title'); });
+    }
+}
+
+// ========== ОСНОВНОЙ КОД (ЛОГИКА 100% СОХРАНЕНА) ==========
+const CONFIG = { 
+    LANGS: ['ru', 'en', 'es', 'de', 'fr', 'it', 'pt', 'ar'], 
+    TOLERANCE: 0.5, SMOOTH_ALPHA: 0.1, SAMPLE_COUNT: 30, 
+    GRID_SIZE: 4, VOICE_INTERVAL: 1400 
+};
+
+const I18N = {
+    ru: { 
+        title: 'Анти ИИ Уровень', btnHowto: 'Как пользоваться', btnLevel: '🎯 УРОВЕНЬ', 
+        btnSave: '📝 ЗАПИСАТЬ', btnSaveAngle: '📐 ЗАПИСАТЬ УГОЛ', btnCheck: '🔍 ПРОВЕРИТЬ', 
+        btnReset: '🗑️ СБРОС', statusReady: 'Готово к запуску', statusInit: 'Инициализация...', 
+        statusPlacingSensor: '📱 Положите телефон на ПОВЕРХНОСТЬ 1 экраном вниз...', 
+        statusPlacingCamera: '📷 Направьте камеру на СТЕНУ или ПОТОЛОК...', 
+        statusManual: '✍️ Введите угол первой поверхности и нажмите ЗАПИСАТЬ', 
+        statusSaved: '✅ Эталон сохранён!', statusCompareAuto: '🔄 Перенесите на ПОВЕРХНОСТЬ 2 — сравнение автоматически', 
+        statusCompareCamera: '🔄 Поверните к ПОВЕРХНОСТИ 2 и нажмите ПРОВЕРИТЬ', 
+        statusCompareManual: '✍️ Введите угол второй поверхности', 
+        statusMatch: '✅ ПОВЕРХНОСТИ СОВПАДАЮТ!', statusAlign: '📐 Выравнивайте...', 
+        statusAlignCamera: '📐 Выравнивайте и нажмите ПРОВЕРИТЬ', 
+        statusReset: '🗑️ Сброшено. Нажмите УРОВЕНЬ для начала.', 
+        statusCameraError: '⚠️ Камера недоступна. Переключено на ручной ввод.', 
+        diffLabel: 'Отклонение:', manualLabel: 'Угол (°)', 
+        hintSensor: '<b>📱 Для смартфона:</b><br>1️⃣ Нажмите <b>УРОВЕНЬ</b><br>2️⃣ За 5 сек положите телефон на ПОВЕРХНОСТЬ 1 (экраном вниз)<br>3️⃣ Держите неподвижно до сигнала «Записано»<br>4️⃣ Перенесите на ПОВЕРХНОСТЬ 2 → сравнение автоматически', 
+        hintCamera: '<b>📷 Для ноутбука/телефона:</b><br>1️⃣ Нажмите <b>УРОВЕНЬ</b><br>2️⃣ Разрешите доступ к камере<br>3️⃣ За 5 сек направьте камеру на СТЕНУ/ПОТОЛОК (эталон)<br>4️⃣ Поверните к ПОВЕРХНОСТИ 2 → нажмите <b>ПРОВЕРИТЬ</b>', 
+        hintManual: '<b>✍️ Ручной режим:</b><br>1️⃣ Нажмите <b>УРОВЕНЬ</b><br>2️⃣ Введите известный угол первой поверхности<br>3️⃣ Нажмите <b>ЗАПИСАТЬ</b><br>4️⃣ Введите угол второй поверхности → сравнение', 
+        badgeWaiting: '⏳ ОЖИДАНИЕ', badgeWork: '🔧 РАБОТА', badgeSensor: '📱 ДАТЧИКИ', 
+        badgeCamera: '📷 КАМЕРА', badgeManual: '✍️ РУЧНОЙ', voiceLevel: 'Уровень готов', 
+        voiceSaved: 'Записано', voiceMatch: 'Совпадает' 
+    },
+    en: { 
+        title: 'Anti AI Level', btnHowto: 'How to use', btnLevel: '🎯 LEVEL', 
+        btnSave: '📝 SAVE', btnSaveAngle: '📐 SAVE ANGLE', btnCheck: '🔍 CHECK', 
+        btnReset: '🗑️ RESET', statusReady: 'Ready to start', statusInit: 'Initializing...', 
+        statusPlacingSensor: '📱 Place phone on SURFACE 1 (screen down)...', 
+        statusPlacingCamera: '📷 Point camera at WALL or CEILING...', 
+        statusManual: '✍️ Enter angle of first surface and press SAVE', 
+        statusSaved: '✅ Reference saved!', statusCompareAuto: '🔄 Move to SURFACE 2 — auto compare', 
+        statusCompareCamera: '🔄 Rotate to SURFACE 2 and press CHECK', 
+        statusCompareManual: '✍️ Enter angle of second surface', 
+        statusMatch: '✅ SURFACES MATCH!', statusAlign: '📐 Aligning...', 
+        statusAlignCamera: '📐 Align and press CHECK', 
+        statusReset: '🗑️ Reset. Press LEVEL to start.', 
+        statusCameraError: '⚠️ Camera unavailable. Switched to manual input.', 
+        diffLabel: 'Deviation:', manualLabel: 'Angle (°)', 
+        hintSensor: '<b>📱 For smartphone:</b><br>1️⃣ Press <b>LEVEL</b><br>2️⃣ Within 5 sec, place on SURFACE 1 (screen down)<br>3️⃣ Hold still until "Saved"<br>4️⃣ Move to SURFACE 2 → auto compare', 
+        hintCamera: '<b>📷 For laptop/phone:</b><br>1️⃣ Press <b>LEVEL</b><br>2️⃣ Allow camera access<br>3️⃣ Point at WALL/CEILING for 5 sec<br>4️⃣ Rotate to SURFACE 2 → press <b>CHECK</b>', 
+        hintManual: '<b>✍️ Manual mode:</b><br>1️⃣ Press <b>LEVEL</b><br>2️⃣ Enter known angle<br>3️⃣ Press <b>SAVE</b><br>4️⃣ Enter second angle → compare', 
+        badgeWaiting: '⏳ WAITING', badgeWork: '🔧 WORK', badgeSensor: '📱 SENSORS', 
+        badgeCamera: '📷 CAMERA', badgeManual: '✍️ MANUAL', voiceLevel: 'Level ready', 
+        voiceSaved: 'Saved', voiceMatch: 'Match' 
+    },
+    es: { title: 'Nivel Anti IA', btnHowto: 'Cómo usar', btnLevel: '🎯 NIVEL', btnSave: '📝 GUARDAR', btnSaveAngle: '📐 GUARDAR ÁNGULO', btnCheck: '🔍 COMPROBAR', btnReset: '🗑️ REINICIAR', statusReady: 'Listo para empezar', statusInit: 'Inicializando...', statusPlacingSensor: '📱 Coloque el teléfono en SUPERFICIE 1 (pantalla abajo)...', statusPlacingCamera: '📷 Apunte la cámara a la PARED o TECHO...', statusManual: '✍️ Introduzca el ángulo y pulse GUARDAR', statusSaved: '✅ Referencia guardada', statusCompareAuto: '🔄 Mueva a SUPERFICIE 2 — comparación automática', statusCompareCamera: '🔄 Gire hacia SUPERFICIE 2 y pulse COMPROBAR', statusCompareManual: '✍️ Introduzca el segundo ángulo', statusMatch: '✅ SUPERFICIES COINCIDEN', statusAlign: '📐 Alineando...', statusAlignCamera: '📐 Alinee y pulse COMPROBAR', statusReset: '🗑️ Reiniciado. Pulse NIVEL para empezar.', statusCameraError: '⚠️ Cámara no disponible. Cambiado a modo manual.', diffLabel: 'Desviación:', manualLabel: 'Ángulo (°)', hintSensor: '<b>📱 Para móvil:</b><br>1️⃣ Pulse <b>NIVEL</b><br>2️⃣ En 5 seg, coloque en SUPERFICIE 1 (pantalla abajo)<br>3️⃣ Mantenga quieto hasta "Guardado"<br>4️⃣ Mueva a SUPERFICIE 2 → comparación automática', hintCamera: '<b>📷 Para portátil/móvil:</b><br>1️⃣ Pulse <b>NIVEL</b><br>2️⃣ Permita acceso a la cámara<br>3️⃣ En 5 seg, apunte a PARED/TECHO<br>4️⃣ Gire a SUPERFICIE 2 → pulse <b>COMPROBAR</b>', hintManual: '<b>✍️ Modo manual:</b><br>1️⃣ Pulse <b>NIVEL</b><br>2️⃣ Introduzca ángulo conocido<br>3️⃣ Pulse <b>GUARDAR</b><br>4️⃣ Introduzca segundo ángulo → comparar', badgeWaiting: '⏳ ESPERANDO', badgeWork: '🔧 TRABAJANDO', badgeSensor: '📱 SENSORES', badgeCamera: '📷 CÁMARA', badgeManual: '✍️ MANUAL', voiceLevel: 'Nivel listo', voiceSaved: 'Guardado', voiceMatch: 'Coinciden' },
+    de: { title: 'Anti KI Wasserwaage', btnHowto: 'Bedienungsanleitung', btnLevel: '🎯 WASSERWAAGE', btnSave: '📝 SPEICHERN', btnSaveAngle: '📐 WINKEL SPEICHERN', btnCheck: '🔍 PRÜFEN', btnReset: '🗑️ ZURÜCKSETZEN', statusReady: 'Bereit zum Start', statusInit: 'Initialisierung...', statusPlacingSensor: '📱 Legen Sie das Telefon auf FLÄCHE 1 (Bildschirm nach unten)...', statusPlacingCamera: '📷 Richten Sie die Kamera auf WAND oder DECKE...', statusManual: '✍️ Geben Sie den Winkel ein und drücken Sie SPEICHERN', statusSaved: '✅ Referenz gespeichert', statusCompareAuto: '🔄 Bewegen Sie zu FLÄCHE 2 — automatischer Vergleich', statusCompareCamera: '🔄 Drehen Sie zu FLÄCHE 2 und drücken Sie PRÜFEN', statusCompareManual: '✍️ Geben Sie den zweiten Winkel ein', statusMatch: '✅ FLÄCHEN STIMMEN ÜBEREIN', statusAlign: '📐 Ausrichten...', statusAlignCamera: '📐 Ausrichten und PRÜFEN drücken', statusReset: '🗑️ Zurückgesetzt. Drücken Sie WASSERWAAGE.', statusCameraError: '⚠️ Kamera nicht verfügbar. Manueller Modus aktiviert.', diffLabel: 'Abweichung:', manualLabel: 'Winkel (°)', hintSensor: '<b>📱 Für Smartphone:</b><br>1️⃣ Drücken Sie <b>WASSERWAAGE</b><br>2️⃣ Innerhalb 5 Sek auf FLÄCHE 1 legen<br>3️⃣ Stillhalten bis "Gespeichert"<br>4️⃣ Zu FLÄCHE 2 bewegen → automatisch', hintCamera: '<b>📷 Für Laptop/Telefon:</b><br>1️⃣ Drücken Sie <b>WASSERWAAGE</b><br>2️⃣ Kamerazugriff erlauben<br>3️⃣ 5 Sek auf WAND/DECKE richten<br>4️⃣ Zu FLÄCHE 2 drehen → <b>PRÜFEN</b>', hintManual: '<b>✍️ Manuell:</b><br>1️⃣ Drücken Sie <b>WASSERWAAGE</b><br>2️⃣ Bekannten Winkel eingeben<br>3️⃣ <b>SPEICHERN</b> drücken<br>4️⃣ Zweiten Winkel eingeben → vergleichen', badgeWaiting: '⏳ WARTEN', badgeWork: '🔧 ARBEITEN', badgeSensor: '📱 SENSOREN', badgeCamera: '📷 KAMERA', badgeManual: '✍️ MANUELL', voiceLevel: 'Wasserwaage bereit', voiceSaved: 'Gespeichert', voiceMatch: 'Stimmt überein' },
+    fr: { title: 'Niveau Anti IA', btnHowto: 'Comment utiliser', btnLevel: '🎯 NIVEAU', btnSave: '📝 ENREGISTRER', btnSaveAngle: '📐 ENREGISTRER ANGLE', btnCheck: '🔍 VÉRIFIER', btnReset: '🗑️ RÉINITIALISER', statusReady: 'Prêt à démarrer', statusInit: 'Initialisation...', statusPlacingSensor: '📱 Placez le téléphone sur SURFACE 1 (écran vers le bas)...', statusPlacingCamera: '📷 Pointez la caméra vers le MUR ou PLAFOND...', statusManual: '✍️ Entrez l\'angle et appuyez sur ENREGISTRER', statusSaved: '✅ Référence enregistrée', statusCompareAuto: '🔄 Déplacez vers SURFACE 2 — comparaison automatique', statusCompareCamera: '🔄 Tournez vers SURFACE 2 et appuyez sur VÉRIFIER', statusCompareManual: '✍️ Entrez le deuxième angle', statusMatch: '✅ SURFACES IDENTIQUES', statusAlign: '📐 Alignement...', statusAlignCamera: '📐 Alignez et appuyez sur VÉRIFIER', statusReset: '🗑️ Réinitialisé. Appuyez sur NIVEAU.', statusCameraError: '⚠️ Caméra indisponible. Mode manuel activé.', diffLabel: 'Écart:', manualLabel: 'Angle (°)', hintSensor: '<b>📱 Pour smartphone:</b><br>1️⃣ Appuyez sur <b>NIVEAU</b><br>2️⃣ En 5 sec, placez sur SURFACE 1<br>3️⃣ Tenez immobile jusqu\'à "Enregistré"<br>4️⃣ Déplacez vers SURFACE 2 → auto', hintCamera: '<b>📷 Pour ordinateur/téléphone:</b><br>1️⃣ Appuyez sur <b>NIVEAU</b><br>2️⃣ Autorisez l\'accès à la caméra<br>3️⃣ En 5 sec, pointez vers MUR/PLAFOND<br>4️⃣ Tournez vers SURFACE 2 → <b>VÉRIFIER</b>', hintManual: '<b>✍️ Manuel:</b><br>1️⃣ Appuyez sur <b>NIVEAU</b><br>2️⃣ Entrez l\'angle connu<br>3️⃣ Appuyez sur <b>ENREGISTRER</b><br>4️⃣ Entrez le deuxième angle → comparer', badgeWaiting: '⏳ ATTENTE', badgeWork: '🔧 TRAVAIL', badgeSensor: '📱 CAPTEURS', badgeCamera: '📷 CAMÉRA', badgeManual: '✍️ MANUEL', voiceLevel: 'Niveau prêt', voiceSaved: 'Enregistré', voiceMatch: 'Identique' },
+    it: { title: 'Livella Anti IA', btnHowto: 'Come usare', btnLevel: '🎯 LIVELLA', btnSave: '📝 SALVA', btnSaveAngle: '📐 SALVA ANGOLO', btnCheck: '🔍 VERIFICA', btnReset: '🗑️ RESET', statusReady: 'Pronto per iniziare', statusInit: 'Inizializzazione...', statusPlacingSensor: '📱 Posiziona il telefono su SUPERFICIE 1 (schermo in basso)...', statusPlacingCamera: '📷 Punta la fotocamera verso MURO o SOFFITTO...', statusManual: '✍️ Inserisci l\'angolo e premi SALVA', statusSaved: '✅ Riferimento salvato', statusCompareAuto: '🔄 Sposta su SUPERFICIE 2 — confronto automatico', statusCompareCamera: '🔄 Gira verso SUPERFICIE 2 e premi VERIFICA', statusCompareManual: '✍️ Inserisci il secondo angolo', statusMatch: '✅ SUPERFICI UGUALI', statusAlign: '📐 Allineamento...', statusAlignCamera: '📐 Allinea e premi VERIFICA', statusReset: '🗑️ Reset. Premi LIVELLA.', statusCameraError: '⚠️ Fotocamera non disponibile. Modalità manuale.', diffLabel: 'Deviazione:', manualLabel: 'Angolo (°)', hintSensor: '<b>📱 Per smartphone:</b><br>1️⃣ Premi <b>LIVELLA</b><br>2️⃣ In 5 sec, posiziona su SUPERFICIE 1<br>3️⃣ Tieni fermo fino a "Salvato"<br>4️⃣ Sposta su SUPERFICIE 2 → auto', hintCamera: '<b>📷 Per laptop/telefono:</b><br>1️⃣ Premi <b>LIVELLA</b><br>2️⃣ Permetti accesso fotocamera<br>3️⃣ In 5 sec, punta a MURO/SOFFITTO<br>4️⃣ Gira verso SUPERFICIE 2 → <b>VERIFICA</b>', hintManual: '<b>✍️ Manuale:</b><br>1️⃣ Premi <b>LIVELLA</b><br>2️⃣ Inserisci angolo noto<br>3️⃣ Premi <b>SALVA</b><br>4️⃣ Inserisci secondo angolo → confronta', badgeWaiting: '⏳ ATTESA', badgeWork: '🔧 LAVORO', badgeSensor: '📱 SENSORI', badgeCamera: '📷 FOTOCAMERA', badgeManual: '✍️ MANUALE', voiceLevel: 'Livella pronta', voiceSaved: 'Salvato', voiceMatch: 'Uguale' },
+    pt: { title: 'Nível Anti IA', btnHowto: 'Como usar', btnLevel: '🎯 NÍVEL', btnSave: '📝 SALVAR', btnSaveAngle: '📐 SALVAR ÂNGULO', btnCheck: '🔍 VERIFICAR', btnReset: '🗑️ REINICIAR', statusReady: 'Pronto para começar', statusInit: 'Inicializando...', statusPlacingSensor: '📱 Coloque o telefone na SUPERFÍCIE 1 (tela para baixo)...', statusPlacingCamera: '📷 Aponte a câmera para a PAREDE ou TETO...', statusManual: '✍️ Digite o ângulo e pressione SALVAR', statusSaved: '✅ Referência salva', statusCompareAuto: '🔄 Mova para SUPERFÍCIE 2 — comparação automática', statusCompareCamera: '🔄 Gire para SUPERFÍCIE 2 e pressione VERIFICAR', statusCompareManual: '✍️ Digite o segundo ângulo', statusMatch: '✅ SUPERFÍCIES IGUAIS', statusAlign: '📐 Alinhando...', statusAlignCamera: '📐 Alinhe e pressione VERIFICAR', statusReset: '🗑️ Reiniciado. Pressione NÍVEL.', statusCameraError: '⚠️ Câmera indisponível. Modo manual.', diffLabel: 'Desvio:', manualLabel: 'Ângulo (°)', hintSensor: '<b>📱 Para smartphone:</b><br>1️⃣ Pressione <b>NÍVEL</b><br>2️⃣ Em 5 seg, coloque na SUPERFÍCIE 1<br>3️⃣ Mantenha imóvel até "Salvo"<br>4️⃣ Mova para SUPERFÍCIE 2 → auto', hintCamera: '<b>📷 Para laptop/telefone:</b><br>1️⃣ Pressione <b>NÍVEL</b><br>2️⃣ Permita acesso à câmera<br>3️⃣ Em 5 seg, aponte para PAREDE/TETO<br>4️⃣ Gire para SUPERFÍCIE 2 → <b>VERIFICAR</b>', hintManual: '<b>✍️ Manual:</b><br>1️⃣ Pressione <b>NÍVEL</b><br>2️⃣ Digite ângulo conhecido<br>3️⃣ Pressione <b>SALVAR</b><br>4️⃣ Digite segundo ângulo → comparar', badgeWaiting: '⏳ AGUARDANDO', badgeWork: '🔧 TRABALHO', badgeSensor: '📱 SENSORES', badgeCamera: '📷 CÂMERA', badgeManual: '✍️ MANUAL', voiceLevel: 'Nível pronto', voiceSaved: 'Salvo', voiceMatch: 'Igual' },
+    ar: { title: 'مستوى مضاد للذكاء الاصطناعي', btnHowto: 'كيفية الاستخدام', btnLevel: '🎯 مستوى', btnSave: '📝 حفظ', btnSaveAngle: '📐 حفظ الزاوية', btnCheck: '🔍 فحص', btnReset: '🗑️ إعادة تعيين', statusReady: 'جاهز للبدء', statusInit: 'جاري التهيئة...', statusPlacingSensor: '📱 ضع الهاتف على السطح 1 (الشاشة لأسفل)...', statusPlacingCamera: '📷 وجه الكاميرا نحو الحائط أو السقف...', statusManual: '✍️ أدخل الزاوية واضغط حفظ', statusSaved: '✅ تم حفظ المرجع', statusCompareAuto: '🔄 انقل إلى السطح 2 — مقارنة تلقائية', statusCompareCamera: '🔄 أدر نحو السطح 2 واضغط فحص', statusCompareManual: '✍️ أدخل الزاوية الثانية', statusMatch: '✅ الأسطح متطابقة', statusAlign: '📐 جاري المحاذاة...', statusAlignCamera: '📐 حاذِ واضغط فحص', statusReset: '🗑️ تم إعادة التعيين. اضغط مستوى.', statusCameraError: '⚠️ الكاميرا غير متاحة. تم التبديل إلى الوضع اليدوي.', diffLabel: 'الانحراف:', manualLabel: 'الزاوية (°)', hintSensor: '<b>📱 للهاتف:</b><br>1️⃣ اضغط <b>مستوى</b><br>2️⃣ خلال 5 ثوانٍ، ضع على السطح 1<br>3️⃣ اثبت حتى "تم الحفظ"<br>4️⃣ انقل إلى السطح 2 → مقارنة تلقائية', hintCamera: '<b>📷 للابتوب/الهاتف:</b><br>1️⃣ اضغط <b>مستوى</b><br>2️⃣ اسمح بالوصول إلى الكاميرا<br>3️⃣ خلال 5 ثوانٍ، وجه نحو الحائط/السقف<br>4️⃣ أدر نحو السطح 2 → اضغط <b>فحص</b>', hintManual: '<b>✍️ يدوي:</b><br>1️⃣ اضغط <b>مستوى</b><br>2️⃣ أدخل الزاوية المعروفة<br>3️⃣ اضغط <b>حفظ</b><br>4️⃣ أدخل الزاوية الثانية → قارن', badgeWaiting: '⏳ انتظار', badgeWork: '🔧 عمل', badgeSensor: '📱 أجهزة استشعار', badgeCamera: '📷 كاميرا', badgeManual: '✍️ يدوي', voiceLevel: 'المستوى جاهز', voiceSaved: 'تم الحفظ', voiceMatch: 'متطابق' }
+};
+
+const state = { 
+    lang: 'ru', mode: 'detecting', savedRef: null, currentAngle: 0, smoothAngle: 0,
+    isRefSaved: false, isChecking: false, soundOn: false, audioCtx: null,
+    voiceTimer: null, camStream: null, animFrame: null, sensorHandler: null,
+    lastSensorValue: null, theme: 'dark' 
+};
+
+function t(key) { return I18N[state.lang]?.[key] || I18N['en'][key] || key; }
+
+function updateUI() {
+    document.getElementById('btn-howto').textContent = t('btnHowto');
+    document.getElementById('btn-start').textContent = t('btnLevel');
+    document.getElementById('btn-save').textContent = state.mode === 'manual' ? t('btnSaveAngle') : t('btnSave');
+    document.getElementById('btn-check').textContent = t('btnCheck');
+    document.querySelector('.btn-warn').textContent = t('btnReset');
+    document.getElementById('status').textContent = t('statusReady');
+    document.getElementById('status3').textContent = t('statusReady');
+    const hintKey = state.mode === 'sensor' ? 'hintSensor' : state.mode === 'camera' ? 'hintCamera' : 'hintManual';
+    document.getElementById('hint-2').innerHTML = t(hintKey);
+    document.getElementById('mode-badge-2').textContent = t('badgeWaiting');
+    document.getElementById('mode-badge-3').textContent = t('badgeWork');
+    document.getElementById('mode-badge-2').className = 'mode-badge ' + state.mode;
+    document.getElementById('mode-badge-3').className = 'mode-badge ' + state.mode;
+    document.getElementById('manual-label').textContent = t('manualLabel');
+    document.getElementById('camera-wrap').style.display = state.mode === 'camera' ? 'block' : 'none';
+    document.getElementById('bubble-view').style.display = state.mode === 'sensor' ? 'block' : 'none';
+    document.getElementById('manual-input').style.display = state.mode === 'manual' ? 'flex' : 'none';
+    document.getElementById('btn-check').style.display = (state.mode === 'camera' && state.isRefSaved) ? 'inline-block' : 'none';
+}
+
+function beep(freq = 440, duration = 0.12) { 
+    if (!state.soundOn) return; 
+    try { 
+        if (!state.audioCtx) state.audioCtx = new (window.AudioContext || window.webkitAudioContext)(); 
+        const osc = state.audioCtx.createOscillator(); 
+        const gain = state.audioCtx.createGain(); 
+        osc.connect(gain); gain.connect(state.audioCtx.destination); 
+        osc.frequency.value = freq; osc.type = 'sine'; 
+        const now = state.audioCtx.currentTime; 
+        gain.gain.setValueAtTime(0.25, now); 
+        gain.gain.exponentialRampToValueAtTime(0.001, now + duration); 
+        osc.start(now); osc.stop(now + duration); 
+    } catch(e) {} 
+}
+
+function speak(textKey) { 
+    if (!state.soundOn || !('speechSynthesis' in window)) return; 
+    window.speechSynthesis.cancel(); 
+    const u = new SpeechSynthesisUtterance(t(textKey)); 
+    u.lang = 'ru-RU'; u.rate = 0.95; u.pitch = 1; 
+    window.speechSynthesis.speak(u); 
+}
+
+function toggleSpeech() {
+    state.soundOn = !state.soundOn;
+    const btn = document.getElementById('voiceBtn');
+    btn.textContent = state.soundOn ? '🔊' : '🔇';
+    if (state.soundOn) speak('voiceLevel');
+}
+
+async function detectMode() {
+    let hasSensor = false, sensorWorking = false, hasCamera = false;
+    try { 
+        if (typeof DeviceOrientationEvent !== 'undefined') { 
+            if (typeof DeviceOrientationEvent.requestPermission === 'function') { 
+                hasSensor = (await DeviceOrientationEvent.requestPermission()) === 'granted'; 
+            } else { hasSensor = true; } 
+        } 
+    } catch(e) { hasSensor = false; }
+    if (hasSensor) sensorWorking = await testSensor();
+    if (!sensorWorking) { 
+        try { 
+            const ts = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 320 } } }); 
+            ts.getTracks().forEach(t => t.stop()); hasCamera = true; 
+        } catch(e) { hasCamera = false; } 
+    }
+    if (sensorWorking) { state.mode = 'sensor'; beep(784, 0.1); } 
+    else if (hasCamera) { state.mode = 'camera'; beep(784, 0.1); } 
+    else { state.mode = 'manual'; beep(330, 0.15); }
+    updateUI(); return state.mode;
+}
+
+async function testSensor() { 
+    return new Promise(res => { 
+        let v = false, c = 0; 
+        const h = e => { 
+            if (e.beta !== null && Math.abs(e.beta) < 90) v = true; c++; 
+            if (c >= 15) { window.removeEventListener('deviceorientation', h); res(v); } 
+        }; 
+        window.addEventListener('deviceorientation', h, false); 
+        setTimeout(() => { window.removeEventListener('deviceorientation', h); res(false); }, 1200); 
+    }); 
+}
+
+function go(id) { 
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); 
+    document.getElementById(id).classList.add('active'); 
+    if (id === 'p3') initPage3(); 
+}
+
+async function startWorkflow() {
+    const btn = document.getElementById('btn-start'), status = document.getElementById('status'), cd = document.getElementById('countdown');
+    btn.disabled = true; status.textContent = t('statusInit');
+    if (state.mode === 'camera' && !state.camStream) { 
+        if (!(await initCamera())) { 
+            state.mode = 'manual'; updateUI(); 
+            status.textContent = t('statusCameraError'); btn.disabled = false; return; 
+        } 
+    }
+    let s = 5; cd.textContent = s; 
+    status.textContent = state.mode === 'sensor' ? t('statusPlacingSensor') : state.mode === 'camera' ? t('statusPlacingCamera') : t('statusManual');
+    const tm = setInterval(() => { 
+        s--; cd.textContent = s > 0 ? s : '🎯'; 
+        if (s <= 0) { clearInterval(tm); cd.textContent = ''; performCalibration(); } 
+    }, 1000);
+}
+
+function performCalibration() { 
+    if (state.mode === 'sensor') calibrateSensor(); 
+    else if (state.mode === 'camera') calibrateCamera(); 
+    else calibrateManual(); 
+}
+
+function calibrateSensor() { 
+    let c = 0; 
+    state.sensorHandler = e => { 
+        if (e.beta === null) return; 
+        if (state.lastSensorValue !== null && Math.abs(e.beta - state.lastSensorValue) > 8) return; 
+        state.lastSensorValue = e.beta; state.currentAngle = e.beta; 
+        state.smoothAngle += CONFIG.SMOOTH_ALPHA * (state.currentAngle - state.smoothAngle); 
+        c++; updateBubble(state.smoothAngle); 
+        if (c >= CONFIG.SAMPLE_COUNT) { 
+            window.removeEventListener('deviceorientation', state.sensorHandler); 
+            finalizeCalibration(state.smoothAngle, false); 
+        } 
+    }; 
+    window.addEventListener('deviceorientation', state.sensorHandler, true); 
+}
+
+function updateBubble(a) { 
+    const b = document.getElementById('bubble'); 
+    const cl = Math.max(-10, Math.min(10, a)); 
+    b.style.transform = `translate(calc(-50% + ${((cl + 10) / 20 - 0.5) * 150}px), -50%)`; 
+}
+
+function calibrateCamera() { 
+    const v = document.getElementById('video'); 
+    if (!v.videoWidth) { setTimeout(calibrateCamera, 100); return; } 
+    state.savedRef = getGridBrightness(v); 
+    finalizeCalibration(null, true); 
+}
+
+function getGridBrightness(video) { 
+    if (!video.videoWidth) return null; 
+    const c = document.createElement('canvas'); c.width = 320; c.height = 240; 
+    const ctx = c.getContext('2d'); 
+    ctx.drawImage(video, 0, 0, 320, 240); 
+    const d = ctx.getImageData(0, 0, 320, 240).data; 
+    const cw = 320/CONFIG.GRID_SIZE, ch = 240/CONFIG.GRID_SIZE, b = []; 
+    for (let r = 0; r < CONFIG.GRID_SIZE; r++) 
+        for (let col = 0; col < CONFIG.GRID_SIZE; col++) { 
+            let s = 0, n = 0; 
+            const xs = Math.floor(col*cw), xe = Math.floor((col+1)*cw), ys = Math.floor(r*ch), ye = Math.floor((r+1)*ch); 
+            for (let y = ys; y < ye; y++) 
+                for (let x = xs; x < xe; x++) { 
+                    const i = (y*320+x)*4; s += (d[i]+d[i+1]+d[i+2])/3; n++; 
+                } 
+            b.push(n>0?s/n:0); 
+        } 
+    return b; 
+}
+
+function compareGrids(g1, g2) { 
+    if (!g1 || !g2 || g1.length !== g2.length) return 999; 
+    let t = 0; 
+    for (let i = 0; i < g1.length; i++) t += Math.abs(g1[i] - g2[i]); 
+    return Math.min(30, (t/g1.length)/8.5); 
+}
+
+function drawGrid() { 
+    const c = document.getElementById('grid-canvas'); 
+    const ctx = c.getContext('2d'); 
+    const w = c.width = 320, h = c.height = 240; 
+    const cw = w/CONFIG.GRID_SIZE, ch = h/CONFIG.GRID_SIZE; 
+    ctx.clearRect(0,0,w,h); ctx.strokeStyle = '#6ba5d9'; ctx.lineWidth = 2; ctx.setLineDash([6,4]); 
+    for (let r = 0; r < CONFIG.GRID_SIZE; r++) 
+        for (let col = 0; col < CONFIG.GRID_SIZE; col++) 
+            ctx.strokeRect(col*cw, r*ch, cw, ch); 
+}
+
+function calibrateManual() { 
+    go('p3'); 
+    document.getElementById('status3').textContent = t('statusCompareManual'); 
+    document.getElementById('btn-save').textContent = t('btnSaveAngle'); 
+    document.getElementById('manual-input').style.display = 'flex'; 
+}
+
+// 🔧 ИСПРАВЛЕНИЕ: добавлен ключ "data" в JSON.stringify
+function finalizeCalibration(a, isCam) { 
+    if (!isCam) { 
+        state.savedRef = a !== null ? a : state.smoothAngle; 
+        localStorage.setItem('antiAi_ref_angle', JSON.stringify({ value: state.savedRef, lang: state.lang })); 
+    } else { 
+        // 🔧 БЫЛО: { state.savedRef, lang: state.lang } → СТАЛО: { data: state.savedRef, lang: state.lang }
+        localStorage.setItem('antiAi_ref_grid', JSON.stringify({ data: state.savedRef, lang: state.lang })); 
+    } 
+    localStorage.setItem('antiAi_mode', state.mode); 
+    state.isRefSaved = true; state.isChecking = false; 
+    beep(880, 0.2); speak('voiceSaved'); 
+    document.getElementById('status').textContent = t('statusSaved'); 
+    setTimeout(() => { 
+        go('p3'); 
+        if (state.mode === 'camera') { 
+            document.getElementById('status3').textContent = t('statusCompareCamera'); 
+            document.getElementById('camera-wrap').style.display = 'block'; 
+            drawGrid(); startCameraAnalysis(); 
+        } else if (state.mode === 'sensor') { 
+            document.getElementById('status3').textContent = t('statusCompareAuto'); 
+            startSensorLoop(); 
+        } else { 
+            document.getElementById('manual-input').style.display = 'flex'; 
+        } 
+    }, 500); 
+}
+
+async function initCamera() { 
+    try { 
+        state.camStream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: 'environment', width: { ideal: 320 }, height: { ideal: 240 } } 
+        }); 
+        const v = document.getElementById('video'); 
+        v.srcObject = state.camStream; await v.play(); 
+        const c = document.getElementById('grid-canvas'); 
+        c.width = 320; c.height = 240; drawGrid(); 
+        return true; 
+    } catch(e) { return false; } 
+}
+
+function startCameraAnalysis() { 
+    const v = document.getElementById('video'); 
+    const loop = () => { 
+        if (!v.readyState || !state.isRefSaved) { state.animFrame = requestAnimationFrame(loop); return; } 
+        const g = getGridBrightness(v); 
+        if (g && state.savedRef && state.isChecking) { 
+            state.currentAngle = compareGrids(state.savedRef, g); 
+            document.getElementById('angle').textContent = state.currentAngle.toFixed(1) + '°'; 
+            document.getElementById('diff').textContent = `${t('diffLabel')} ${state.currentAngle.toFixed(1)}°`; 
+            checkMatchState(); drawGrid(); 
+        } 
+        state.animFrame = requestAnimationFrame(loop); 
+    }; 
+    loop(); 
+}
+
+function startSensorLoop() { 
+    const h = e => { 
+        if (e.beta === null || !state.isRefSaved) return; 
+        if (state.lastSensorValue !== null && Math.abs(e.beta - state.lastSensorValue) > 10) return; 
+        state.lastSensorValue = e.beta; state.currentAngle = e.beta; 
+        state.smoothAngle += CONFIG.SMOOTH_ALPHA * (state.currentAngle - state.smoothAngle); 
+        updateBubble(state.smoothAngle); checkMatchState(); 
+    }; 
+    state.sensorHandler = h; 
+    window.addEventListener('deviceorientation', h, true); 
+}
+
+function checkMatchState() { 
+    if (!state.isRefSaved) return; 
+    let d = state.mode === 'camera' ? state.currentAngle : Math.abs((state.smoothAngle || state.currentAngle) - (state.savedRef || 0)); 
+    document.getElementById('angle').textContent = d.toFixed(1) + '°'; 
+    const m = d <= CONFIG.TOLERANCE, i = document.getElementById('indicator'), s3 = document.getElementById('status3'); 
+    if (m && !state.isChecking) { 
+        state.isChecking = true; i.classList.add('on'); i.textContent = '✓'; 
+        s3.textContent = t('statusMatch'); s3.style.color = '#6b9c7a'; 
+        if (state.soundOn) speak('voiceMatch'); 
+        if (navigator.vibrate) navigator.vibrate([50, 50, 50]); 
+        beep(988, 0.15); setTimeout(() => beep(1175, 0.15), 100); 
+    } else if (!m && state.isChecking) { 
+        state.isChecking = false; i.classList.remove('on'); i.textContent = '⚖️'; 
+        s3.textContent = state.mode === 'camera' ? t('statusAlignCamera') : t('statusAlign'); 
+        s3.style.color = '#e0e0e0'; 
+    } 
+}
+
+function checkMatch() { 
+    if (!state.savedRef) { document.getElementById('status3').textContent = '⚠️ ' + t('btnSave'); return; } 
+    state.isChecking = true; 
+    document.getElementById('status3').textContent = '🔍 ' + t('btnCheck') + '...'; 
+    document.getElementById('status3').style.color = '#6ba5d9'; 
+}
+
+function saveRef() { 
+    if (state.mode === 'manual') { 
+        const v = parseFloat(document.getElementById('manual-angle').value); 
+        state.savedRef = isNaN(v) ? 0 : v; 
+        localStorage.setItem('antiAi_ref_angle', JSON.stringify({ value: state.savedRef, lang: state.lang })); 
+        state.isRefSaved = true; beep(880, 0.2); speak('voiceSaved'); 
+        document.getElementById('status3').textContent = `✅ ${state.savedRef.toFixed(1)}° ${t('statusSaved')}`; 
+        return; 
+    } 
+    if (state.mode === 'sensor') { 
+        state.savedRef = state.smoothAngle; 
+        localStorage.setItem('antiAi_ref_angle', JSON.stringify({ value: state.savedRef, lang: state.lang })); 
+    } else { 
+        state.savedRef = getGridBrightness(document.getElementById('video')); 
+        localStorage.setItem('antiAi_ref_grid', JSON.stringify({ data: state.savedRef, lang: state.lang })); 
+    } 
+    state.isRefSaved = true; state.isChecking = false; 
+    beep(880, 0.2); speak('voiceSaved'); 
+    document.getElementById('status3').textContent = t('statusSaved'); 
+}
+
+function resetAll() { 
+    if (state.animFrame) cancelAnimationFrame(state.animFrame); 
+    if (state.sensorHandler) { window.removeEventListener('deviceorientation', state.sensorHandler); state.sensorHandler = null; } 
+    if (state.camStream) { state.camStream.getTracks().forEach(t => t.stop()); state.camStream = null; } 
+    state.isRefSaved = false; state.isChecking = false; state.savedRef = null; 
+    state.currentAngle = 0; state.smoothAngle = 0; state.lastSensorValue = null; 
+    document.getElementById('angle').textContent = '0.0°'; document.getElementById('diff').textContent = ''; 
+    document.getElementById('indicator').classList.remove('on'); document.getElementById('indicator').textContent = '⚖️'; 
+    document.getElementById('status3').textContent = t('statusReset'); document.getElementById('status3').style.color = '#e0e0e0'; 
+    document.getElementById('bubble').style.transform = 'translate(-50%, -50%)'; 
+    localStorage.removeItem('antiAi_ref_angle'); localStorage.removeItem('antiAi_ref_grid'); 
+    go('p2'); document.getElementById('btn-start').disabled = false; document.getElementById('countdown').textContent = ''; 
+}
+
+function initPage3() { 
+    updateUI(); 
+    document.getElementById('camera-wrap').style.display = 'none'; 
+    document.getElementById('bubble-view').style.display = 'none'; 
+    document.getElementById('manual-input').style.display = 'none'; 
+    document.getElementById('btn-check').style.display = 'none'; 
+    if (state.mode === 'manual') { 
+        document.getElementById('manual-input').style.display = 'flex'; 
+        document.getElementById('btn-save').textContent = t('btnSaveAngle'); 
+        document.getElementById('status3').textContent = t('statusCompareManual'); 
+        const s = localStorage.getItem('antiAi_ref_angle'); 
+        if (s) { try { const d = JSON.parse(s); if (d.lang === state.lang) document.getElementById('manual-angle').value = d.value.toFixed(1); } catch(e) {} } 
+    } else if (state.mode === 'camera') { 
+        document.getElementById('btn-check').style.display = 'inline-block'; 
+        document.getElementById('btn-save').textContent = t('btnSave'); 
+        const s = localStorage.getItem('antiAi_ref_grid'); 
+        if (s) { try { const d = JSON.parse(s); if (d.lang === state.lang) { state.savedRef = d.data; state.isRefSaved = true; document.getElementById('camera-wrap').style.display = 'block'; drawGrid(); startCameraAnalysis(); } } catch(e) {} } 
+    } else { 
+        document.getElementById('btn-save').textContent = t('btnSave'); 
+        document.getElementById('bubble-view').style.display = 'block'; 
+        const s = localStorage.getItem('antiAi_ref_angle'); 
+        if (s) { try { const d = JSON.parse(s); if (d.lang === state.lang) { state.savedRef = d.value; state.isRefSaved = true; startSensorLoop(); } } catch(e) {} } 
+    } 
+}
+
+function initLanguages() { 
+    const g = document.getElementById('langs'); 
+    CONFIG.LANGS.forEach((c, i) => { 
+        const b = document.createElement('button'); 
+        b.className = 'lang-btn' + (i === 0 ? ' active' : ''); 
+        b.textContent = c.toUpperCase(); 
+        b.onclick = () => { 
+            state.lang = c; 
+            document.querySelectorAll('.lang-btn').forEach(x => x.classList.remove('active')); 
+            b.classList.add('active'); 
+            updateUI(); document.title = t('title'); 
+        }; 
+        g.appendChild(b); 
+    }); 
+}
+
+window.go = go; window.startWorkflow = startWorkflow; window.saveRef = saveRef; 
+window.checkMatch = checkMatch; window.resetAll = resetAll; window.toggleSpeech = toggleSpeech;
+
+function initAppAfterSplash() {
+    initLanguages();
+    detectMode().then(() => { updateUI(); document.title = t('title'); });
+}
+</script>
+</body>
+</html>
