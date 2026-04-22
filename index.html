@@ -240,6 +240,99 @@
         }
         .lang-btn:active { transform: scale(0.96); }
 
+        /* НОВЫЙ БЛОК: АНТИ-ИИ УРОВЕНЬ — БЕСПЛАТНО НАВСЕГДА + ПОДДЕРЖКА */
+        .free-badge {
+            text-align: center;
+            margin: 12px 0 0 0;
+            padding: 12px 16px;
+            background: linear-gradient(135deg, #1a2a3a 0%, #0f1a24 100%);
+            border-radius: 28px;
+            border: 1px solid rgba(107,165,217,0.3);
+        }
+        .free-title {
+            font-size: 18px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #FFD166, #FF9F4A);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 15px rgba(255,209,102,0.3);
+            letter-spacing: 1px;
+        }
+        .free-sub {
+            font-size: 13px;
+            color: #9ab3c5;
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .heart-icon {
+            color: #ff6b6b;
+            font-size: 18px;
+            animation: heartbeat 1.2s infinite;
+        }
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        .support-block {
+            background: rgba(0,0,0,0.5);
+            border-radius: 20px;
+            padding: 14px 12px;
+            margin-top: 14px;
+            text-align: center;
+            border: 1px solid rgba(107,165,217,0.3);
+        }
+        .support-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #FFD166;
+            margin-bottom: 10px;
+        }
+        .phone-number {
+            background: #1e2a3a;
+            padding: 10px;
+            border-radius: 40px;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            margin: 8px 0;
+            border: 1px solid #6ba5d9;
+        }
+        .copy-btn {
+            background: #6ba5d9;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 30px;
+            color: #000;
+            font-weight: bold;
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+        .copy-btn:active { transform: scale(0.95); background: #4a7a9e; }
+        .project-link {
+            display: inline-block;
+            margin: 6px 5px;
+            font-size: 11px;
+            color: #6ba5d9;
+            text-decoration: none;
+            background: rgba(0,0,0,0.4);
+            padding: 4px 8px;
+            border-radius: 16px;
+        }
+        .projects-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 12px;
+        }
         .hint {
             background: rgba(0,0,0,0.7); border-radius: 16px;
             padding: 15px; margin: 8px 0 18px; max-width: 330px;
@@ -278,6 +371,38 @@
             <button class="btn btn-primary btn-large" id="btn-howto" onclick="go('p2')">Как пользоваться</button>
             <div style="font-size:11px;color:#9ab3c5;margin-top:6px">v1.2 • Офлайн • Бесплатно</div>
             <div class="lang-grid" id="langs"></div>
+            
+            <!-- НОВЫЙ БЛОК: АНТИ-ИИ Уровень — БЕСПЛАТНО НАВСЕГДА и ПОДДЕРЖКА -->
+            <div class="free-badge">
+                <div class="free-title">✨ АНТИ-ИИ Уровень — БЕСПЛАТНО НАВСЕГДА ✨</div>
+                <div class="free-sub">
+                    <span class="heart-icon">💙</span> Приложение бесплатное. Было и останется.
+                </div>
+            </div>
+            
+            <div class="support-block">
+                <div class="support-title">📱 ПОДДЕРЖАТЬ ПРОЕКТ</div>
+                <div class="phone-number">
+                    <span>📞 8-920-227-56-76</span>
+                    <button class="copy-btn" onclick="copyPhone()">📋 Копировать</button>
+                </div>
+                <div style="font-size:11px; color:#9ab3c5;">✅ Деньги придут мгновенно. Без комиссии. Безопасно.</div>
+                <div style="font-size:11px; margin-top:10px;">❤️ Спасибо за поддержку!</div>
+            </div>
+
+            <div class="projects-row">
+                <a href="https://anti-ai-shield.vercel.app/" target="_blank" class="project-link">🛡️ Защита от мошенников</a>
+                <a href="https://anti-bullying-app-one.vercel.app/" target="_blank" class="project-link">🏫 Защита от буллинга</a>
+                <a href="https://anti-ai-animals.vercel.app/" target="_blank" class="project-link">🐾 Животные поют</a>
+                <a href="https://anti-ai-stress.vercel.app/" target="_blank" class="project-link">🧘 Анти-ИИ Стресс</a>
+                <a href="https://anti-ai-barcode.vercel.app/" target="_blank" class="project-link">📱 Анти ИИ Штрих-код</a>
+                <a href="https://anti-ai-cosmos.vercel.app/" target="_blank" class="project-link">✨ Анти ИИ Космос</a>
+                <a href="https://anti-ai-auto.vercel.app/" target="_blank" class="project-link">🚗 Анти ИИ Автомобиль</a>
+                <a href="https://anti-ai-memory.vercel.app/" target="_blank" class="project-link">🧠 Анти ИИ Память</a>
+                <a href="https://anti-ai-passwords.vercel.app/" target="_blank" class="project-link">🔐 Анти ИИ Пароли</a>
+                <a href="https://anti-ai-level.vercel.app/" target="_blank" class="project-link">📐 Анти ИИ Уровень</a>
+                <a href="https://rutube.ru/channel/24404224/" target="_blank" class="project-link">✨ ВолшебствО</a>
+            </div>
         </div>
 
         <!-- Страница 2: Инструкция + Запуск -->
@@ -390,6 +515,15 @@ function initAppAfterSplash() {
         detectMode().then(() => { updateUI(); document.title = t('title'); });
     }
 }
+
+// Функция копирования телефона
+window.copyPhone = function() {
+    navigator.clipboard.writeText("8-920-227-56-76");
+    const btn = event.target;
+    const original = btn.textContent;
+    btn.textContent = "✅ Скопировано!";
+    setTimeout(() => { btn.textContent = original; }, 1500);
+};
 
 // ========== ОСНОВНОЙ КОД (ЛОГИКА 100% СОХРАНЕНА) ==========
 const CONFIG = { 
@@ -648,13 +782,11 @@ function calibrateManual() {
     document.getElementById('manual-input').style.display = 'flex'; 
 }
 
-// 🔧 ИСПРАВЛЕНИЕ: добавлен ключ "data" в JSON.stringify
 function finalizeCalibration(a, isCam) { 
     if (!isCam) { 
         state.savedRef = a !== null ? a : state.smoothAngle; 
         localStorage.setItem('antiAi_ref_angle', JSON.stringify({ value: state.savedRef, lang: state.lang })); 
     } else { 
-        // 🔧 БЫЛО: { state.savedRef, lang: state.lang } → СТАЛО: { data: state.savedRef, lang: state.lang }
         localStorage.setItem('antiAi_ref_grid', JSON.stringify({ data: state.savedRef, lang: state.lang })); 
     } 
     localStorage.setItem('antiAi_mode', state.mode); 
